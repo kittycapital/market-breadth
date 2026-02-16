@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Breadth Dashboard | Herdvibe.com</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0e17;
+  --bg-secondary: #111827;
+  --bg-card: #151d2e;
+  --bg-card-hover: #1a2540;
+  --border: #1e293b;
+  --border-active: #3b82f6;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent-blue: #3b82f6;
+  --accent-cyan: #06b6d4;
+  --accent-green: #10b981;
+  --accent-yellow: #f59e0b;
+  --accent-orange: #f97316;
+  --accent-red: #ef4444;
+  --accent-purple: #8b5cf6;
+  --ma20: #10b981;
+  --ma50: #3b82f6;
+  --ma100: #f59e0b;
+  --ma200: #ef4444;
+  --zone-overbought: rgba(239,68,68,0.06);
+  --zone-oversold: rgba(59,130,246,0.06);
+  --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, rgba(6,182,212,0.15), rgba(59,130,246,0.1));
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(6,182,212,0.2);
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.header-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.updated-at {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+/* Tabs */
+.tabs-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover { background: var(--bg-card); color: var(--text-primary); }
+
+.tab-btn.active {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: #fff;
+}
+
+.tab-btn.compare-btn {
+  margin-left: auto;
+  border-style: dashed;
+  font-size: 13px;
+}
+
+.tab-btn.compare-btn.active {
+  background: var(--accent-purple);
+  border-color: var(--accent-purple);
+  border-style: solid;
+}
+
+/* Cards */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title::before {
+  content: '';
+  width: 3px;
+  height: 14px;
+  background: var(--accent-blue);
+  border-radius: 2px;
+}
+
+/* Chart containers */
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: 300px;
+}
+
+.chart-wrapper.tall { height: 350px; }
+
+/* Snapshot Grid */
+.snapshot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.snapshot-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+}
+
+.snapshot-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+}
+
+.snapshot-value {
+  font-size: 28px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  margin-bottom: 6px;
+}
+
+.snapshot-bar {
+  height: 6px;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.snapshot-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+/* Signal Cards */
+.signals-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.signal-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  text-align: center;
+}
+
+.signal-type {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+.signal-score {
+  font-size: 48px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.signal-max {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.signal-indicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Score Breakdown */
+.score-breakdown {
+  margin-top: 12px;
+  text-align: left;
+}
+
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+.score-row:last-child { border-bottom: none; }
+
+.score-row-value {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Historical Probability */
+.prob-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.prob-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.prob-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  color: var(--text-secondary);
+}
+
+.prob-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+.prob-positive { color: var(--accent-green); font-weight: 600; }
+.prob-negative { color: var(--accent-red); font-weight: 600; }
+
+.prob-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.prob-match-info {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  font-family: var(--font-mono);
+}
+
+/* Compare View */
+.compare-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.compare-col {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+}
+
+.compare-col-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.compare-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 13px;
+}
+
+.compare-row:last-child { border-bottom: none; }
+
+.compare-label {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.compare-value {
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+/* MA Legend */
+.ma-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.ma-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.ma-legend-dot {
+  width: 10px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+/* Share Bar */
+.share-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.share-bar-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-right: 4px;
+}
+
+.share-btn {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.share-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+/* Utilities */
+.text-green { color: var(--accent-green); }
+.text-red { color: var(--accent-red); }
+.text-yellow { color: var(--accent-yellow); }
+.text-orange { color: var(--accent-orange); }
+.text-blue { color: var(--accent-blue); }
+
+.hidden { display: none !important; }
+
+/* Time range buttons */
+.time-range {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.time-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.time-btn:hover { color: var(--text-secondary); border-color: var(--text-muted); }
+.time-btn.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container { padding: 12px; }
+  .header { flex-direction: column; align-items: flex-start; }
+  .signals-grid { grid-template-columns: 1fr; }
+  .compare-grid { grid-template-columns: 1fr; }
+  .snapshot-grid { grid-template-columns: 1fr 1fr; }
+  .chart-wrapper { height: 250px; }
+  .chart-wrapper.tall { height: 280px; }
+  .signal-score { font-size: 36px; }
+  .tab-btn.compare-btn { margin-left: 0; }
+}
+
+@media (max-width: 480px) {
+  .snapshot-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">Herdvibe.com</div>
+      <div>
+        <div class="header-title">Market Breadth Dashboard</div>
+        <div class="header-subtitle">% of Stocks Above Moving Average · Top & Bottom Signal</div>
+      </div>
+    </div>
+    <div class="updated-at" id="updatedAt"></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-container">
+    <button class="tab-btn active" data-tab="SPY">SPY · S&P 500</button>
+    <button class="tab-btn" data-tab="QQQ">QQQ · Nasdaq 100</button>
+    <button class="tab-btn" data-tab="DIA">DIA · Dow 30</button>
+    <button class="tab-btn compare-btn" data-tab="COMPARE">⟷ 비교</button>
+  </div>
+
+  <!-- Single Index View -->
+  <div id="singleView">
+    <!-- Price Chart -->
+    <div class="card">
+      <div class="card-title">인덱스 가격</div>
+      <div class="time-range" id="timeRange">
+        <button class="time-btn" data-range="63">3M</button>
+        <button class="time-btn" data-range="126">6M</button>
+        <button class="time-btn" data-range="252">1Y</button>
+        <button class="time-btn" data-range="504">2Y</button>
+        <button class="time-btn active" data-range="0">5Y</button>
+      </div>
+      <div class="chart-wrapper"><canvas id="priceChart"></canvas></div>
+    </div>
+
+    <!-- Breadth Chart -->
+    <div class="card">
+      <div class="card-title">% of Stocks Above Moving Average</div>
+      <div class="ma-legend">
+        <div class="ma-legend-item"><div class="ma-legend-dot" style="background:var(--ma20)"></div>20 MA</div>
+        <div class="ma-legend-item"><div class="ma-legend-dot" style="background:var(--ma50)"></div>50 MA</div>
+        <div class="ma-legend-item"><div class="ma-legend-dot" style="background:var(--ma100)"></div>100 MA</div>
+        <div class="ma-legend-item"><div class="ma-legend-dot" style="background:var(--ma200)"></div>200 MA</div>
+      </div>
+      <div class="chart-wrapper tall"><canvas id="breadthChart"></canvas></div>
+    </div>
+
+    <!-- Snapshot + Signals -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px;">
+      <!-- Current Snapshot -->
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">현재 브레드스 스냅샷</div>
+        <div id="snapshotArea"></div>
+      </div>
+
+      <!-- Signals -->
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">탑 / 바텀 시그널</div>
+        <div class="signals-grid" id="signalArea"></div>
+      </div>
+    </div>
+
+    <!-- Historical Probability -->
+    <div class="card">
+      <div class="card-title">히스토리컬 확률 분석</div>
+      <div id="histProbArea"></div>
+    </div>
+  </div>
+
+  <!-- Compare View -->
+  <div id="compareView" class="hidden">
+    <div class="card">
+      <div class="card-title">인덱스 비교 · 현재 브레드스</div>
+      <div class="compare-grid" id="compareGrid"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">브레드스 비교 차트 · % Above 20 MA</div>
+      <div class="chart-wrapper tall"><canvas id="compareChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Share -->
+  <div class="share-bar">
+    <span class="share-bar-label">공유</span>
+    <button class="share-btn" onclick="shareTwitter()">𝕏 Twitter</button>
+    <button class="share-btn" onclick="shareKakao()">💬 카카오톡</button>
+    <button class="share-btn" onclick="shareTelegram()">✈ 텔레그램</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA LOADING
+// ============================================================
+// 실제 운영 시: fetch('./data/market_breadth.json') 으로 교체
+// 아래는 데모용 인라인 데이터 로더
+let DATA = null;
+
+async function loadData() {
+  try {
+    const resp = await fetch('./data/market_breadth.json');
+    DATA = await resp.json();
+  } catch(e) {
+    // Fallback: generate minimal sample inline
+    console.log('External JSON not found, using inline sample data');
+    DATA = generateSampleData();
+  }
+  init();
+}
+
+function generateSampleData() {
+  const n = 1260;
+  const dates = [];
+  let d = new Date(2021, 1, 16);
+  while (dates.length < n) {
+    if (d.getDay() !== 0 && d.getDay() !== 6) {
+      dates.push(d.toISOString().slice(0,10));
+    }
+    d = new Date(d.getTime() + 86400000);
+  }
+
+  function rw(start, drift, vol, n) {
+    const arr = [start];
+    for (let i = 1; i < n; i++) {
+      arr.push(Math.max(2, Math.min(98, arr[i-1] + (50 - arr[i-1]) * 0.01 + (Math.random()-0.5) * vol)));
+    }
+    return arr.map(v => Math.round(v*100)/100);
+  }
+
+  function price(start, n) {
+    const arr = [start];
+    for (let i = 1; i < n; i++) {
+      arr.push(arr[i-1] * (1 + (Math.random()-0.48)*0.02));
+    }
+    return arr.map(v => Math.round(v*100)/100);
+  }
+
+  function signals(b, n) {
+    const bot = [], top = [];
+    for (let i = 0; i < n; i++) {
+      let bs = 0, ts = 0;
+      if (b.pct_above_20[i] < 15) bs += 25;
+      if (b.pct_above_50[i] < 25) bs += 20;
+      if (b.pct_above_100[i] < 35) bs += 15;
+      if (b.pct_above_200[i] < 45) bs += 10;
+      if (b.pct_above_20[i] > 85) ts += 20;
+      if (b.pct_above_50[i] > 80) ts += 15;
+      if (b.pct_above_100[i] > 80) ts += 15;
+      if (b.pct_above_200[i] > 85) ts += 10;
+      bot.push(Math.min(100, bs));
+      top.push(Math.min(100, ts));
+    }
+    return { bottom_score: bot, top_score: top };
+  }
+
+  const indices = {};
+  const cfgs = {
+    SPY: { p: 400, name: 'S&P 500' },
+    QQQ: { p: 330, name: 'Nasdaq 100' },
+    DIA: { p: 320, name: 'Dow 30' }
+  };
+
+  for (const [k, c] of Object.entries(cfgs)) {
+    const breadth = {
+      pct_above_20: rw(60, 0, 6, n),
+      pct_above_50: rw(58, 0, 4.5, n),
+      pct_above_100: rw(55, 0, 3.5, n),
+      pct_above_200: rw(62, 0, 2.5, n)
+    };
+    const sig = signals(breadth, n);
+    const pr = price(c.p, n);
+    indices[k] = {
+      name: c.name, dates, prices: pr, breadth,
+      signals: sig,
+      current: {
+        pct_above_20: breadth.pct_above_20[n-1],
+        pct_above_50: breadth.pct_above_50[n-1],
+        pct_above_100: breadth.pct_above_100[n-1],
+        pct_above_200: breadth.pct_above_200[n-1],
+        bottom_score: sig.bottom_score[n-1],
+        top_score: sig.top_score[n-1],
+      },
+      historical_probability: {
+        tolerance: 5, match_count: 8,
+        "5d": { avg: 0.8, positive_pct: 62.5, max: 3.2, min: -1.5 },
+        "20d": { avg: 3.1, positive_pct: 75.0, max: 8.5, min: -2.1 },
+        "60d": { avg: 6.4, positive_pct: 87.5, max: 14.2, min: -1.8 },
+      }
+    };
+  }
+
+  const vixArr = rw(18, 0, 3, n);
+  return {
+    generated_at: new Date().toISOString(),
+    indices,
+    vix: { current: vixArr[n-1], dates, values: vixArr }
+  };
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let currentTab = 'SPY';
+let currentRange = 0; // 0 = all
+let charts = {};
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  document.getElementById('updatedAt').innerHTML =
+    `업데이트: ${DATA.generated_at.slice(0,16).replace('T',' ')}<br>VIX: <span style="color:${DATA.vix.current > 25 ? 'var(--accent-red)' : 'var(--accent-green)'};font-weight:700">${DATA.vix.current}</span>`;
+
+  // Tab events
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTab = btn.dataset.tab;
+      render();
+    });
+  });
+
+  // Time range events
+  document.querySelectorAll('.time-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentRange = parseInt(btn.dataset.range);
+      renderCharts();
+    });
+  });
+
+  render();
+}
+
+function render() {
+  if (currentTab === 'COMPARE') {
+    document.getElementById('singleView').classList.add('hidden');
+    document.getElementById('compareView').classList.remove('hidden');
+    renderCompare();
+  } else {
+    document.getElementById('singleView').classList.remove('hidden');
+    document.getElementById('compareView').classList.add('hidden');
+    renderCharts();
+    renderSnapshot();
+    renderSignals();
+    renderHistProb();
+  }
+}
+
+// ============================================================
+// CHART RENDERING
+// ============================================================
+function sliceData(arr, range) {
+  if (!range || range === 0) return arr;
+  return arr.slice(-range);
+}
+
+function renderCharts() {
+  const idx = DATA.indices[currentTab];
+  if (!idx) return;
+  const range = currentRange;
+
+  const dates = sliceData(idx.dates, range);
+  const prices = sliceData(idx.prices, range);
+  const b20 = sliceData(idx.breadth.pct_above_20, range);
+  const b50 = sliceData(idx.breadth.pct_above_50, range);
+  const b100 = sliceData(idx.breadth.pct_above_100, range);
+  const b200 = sliceData(idx.breadth.pct_above_200, range);
+
+  // --- Price Chart ---
+  if (charts.price) charts.price.destroy();
+
+  const priceCtx = document.getElementById('priceChart').getContext('2d');
+  const priceGrad = priceCtx.createLinearGradient(0, 0, 0, 280);
+  priceGrad.addColorStop(0, 'rgba(59,130,246,0.15)');
+  priceGrad.addColorStop(1, 'rgba(59,130,246,0)');
+
+  charts.price = new Chart(priceCtx, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [{
+        label: currentTab,
+        data: prices,
+        borderColor: '#3b82f6',
+        backgroundColor: priceGrad,
+        fill: true,
+        borderWidth: 1.5,
+        pointRadius: 0,
+        tension: 0.1,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1e293b',
+          titleColor: '#94a3b8',
+          bodyColor: '#f1f5f9',
+          titleFont: { family: "'JetBrains Mono'" },
+          bodyFont: { family: "'JetBrains Mono'", weight: '600' },
+          borderColor: '#334155',
+          borderWidth: 1,
+          padding: 10,
+          callbacks: {
+            label: ctx => `${currentTab}: $${ctx.parsed.y.toFixed(2)}`
+          }
+        },
+        annotation: {
+          annotations: {
+            watermark: {
+              type: 'label',
+              xValue: dates[Math.floor(dates.length * 0.5)],
+              yValue: Math.max(...prices) * 0.92,
+              content: 'Herdvibe.com',
+              font: { size: 14, family: "'JetBrains Mono'", weight: '600' },
+              color: 'rgba(148,163,184,0.12)',
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.03)' },
+          ticks: {
+            color: '#64748b', font: { family: "'JetBrains Mono'", size: 10 },
+            maxTicksLimit: 8, maxRotation: 0
+          }
+        },
+        y: {
+          position: 'right',
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: {
+            color: '#64748b', font: { family: "'JetBrains Mono'", size: 10 },
+            callback: v => '$' + v.toFixed(0)
+          }
+        }
+      }
+    }
+  });
+
+  // --- Breadth Chart ---
+  if (charts.breadth) charts.breadth.destroy();
+
+  const breadthCtx = document.getElementById('breadthChart').getContext('2d');
+
+  charts.breadth = new Chart(breadthCtx, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [
+        { label: '20 MA', data: b20, borderColor: '#10b981', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+        { label: '50 MA', data: b50, borderColor: '#3b82f6', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+        { label: '100 MA', data: b100, borderColor: '#f59e0b', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+        { label: '200 MA', data: b200, borderColor: '#ef4444', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1e293b',
+          titleColor: '#94a3b8',
+          bodyColor: '#f1f5f9',
+          titleFont: { family: "'JetBrains Mono'" },
+          bodyFont: { family: "'JetBrains Mono'" },
+          borderColor: '#334155', borderWidth: 1, padding: 10,
+          callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%` }
+        },
+        annotation: {
+          annotations: {
+            obZone: {
+              type: 'box', yMin: 80, yMax: 100,
+              backgroundColor: 'rgba(239,68,68,0.06)',
+              borderWidth: 0,
+            },
+            osZone: {
+              type: 'box', yMin: 0, yMax: 20,
+              backgroundColor: 'rgba(59,130,246,0.06)',
+              borderWidth: 0,
+            },
+            obLine: {
+              type: 'line', yMin: 80, yMax: 80,
+              borderColor: 'rgba(239,68,68,0.2)', borderWidth: 1, borderDash: [4,4],
+              label: { content: '과열', display: true, position: 'start',
+                font: { size: 9, family: "'JetBrains Mono'" }, color: 'rgba(239,68,68,0.4)',
+                backgroundColor: 'transparent' }
+            },
+            osLine: {
+              type: 'line', yMin: 20, yMax: 20,
+              borderColor: 'rgba(59,130,246,0.2)', borderWidth: 1, borderDash: [4,4],
+              label: { content: '과매도', display: true, position: 'start',
+                font: { size: 9, family: "'JetBrains Mono'" }, color: 'rgba(59,130,246,0.4)',
+                backgroundColor: 'transparent' }
+            },
+            watermark: {
+              type: 'label',
+              xValue: dates[Math.floor(dates.length * 0.5)],
+              yValue: 50,
+              content: 'Herdvibe.com',
+              font: { size: 16, family: "'JetBrains Mono'", weight: '600' },
+              color: 'rgba(148,163,184,0.08)',
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.03)' },
+          ticks: {
+            color: '#64748b', font: { family: "'JetBrains Mono'", size: 10 },
+            maxTicksLimit: 8, maxRotation: 0
+          }
+        },
+        y: {
+          position: 'right',
+          min: 0, max: 100,
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: {
+            color: '#64748b', font: { family: "'JetBrains Mono'", size: 10 },
+            callback: v => v + '%', stepSize: 20
+          }
+        }
+      }
+    }
+  });
+}
+
+// ============================================================
+// SNAPSHOT
+// ============================================================
+function renderSnapshot() {
+  const idx = DATA.indices[currentTab];
+  const c = idx.current;
+  const items = [
+    { label: '> 20 MA', value: c.pct_above_20, color: '--ma20' },
+    { label: '> 50 MA', value: c.pct_above_50, color: '--ma50' },
+    { label: '> 100 MA', value: c.pct_above_100, color: '--ma100' },
+    { label: '> 200 MA', value: c.pct_above_200, color: '--ma200' },
+  ];
+
+  document.getElementById('snapshotArea').innerHTML = items.map(item => {
+    const valColor = item.value > 70 ? 'var(--accent-green)' :
+                     item.value > 40 ? 'var(--accent-yellow)' :
+                     item.value > 20 ? 'var(--accent-orange)' : 'var(--accent-red)';
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+        <span style="font-family:var(--font-mono);font-size:13px;color:var(--text-muted)">${item.label}</span>
+        <div style="display:flex;align-items:center;gap:10px;flex:1;margin-left:16px">
+          <div style="flex:1;height:6px;background:var(--bg-primary);border-radius:3px;overflow:hidden">
+            <div style="width:${item.value}%;height:100%;background:var(${item.color});border-radius:3px;transition:width 0.6s"></div>
+          </div>
+          <span style="font-family:var(--font-mono);font-weight:700;font-size:15px;color:${valColor};min-width:50px;text-align:right">${item.value.toFixed(1)}%</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================================================
+// SIGNALS
+// ============================================================
+function getSignalColor(score) {
+  if (score >= 80) return 'var(--accent-red)';
+  if (score >= 60) return 'var(--accent-orange)';
+  if (score >= 30) return 'var(--accent-yellow)';
+  return 'var(--accent-green)';
+}
+
+function getSignalLabel(score) {
+  if (score >= 80) return '극단적';
+  if (score >= 60) return '강함';
+  if (score >= 30) return '주의';
+  return '약함';
+}
+
+function renderSignals() {
+  const idx = DATA.indices[currentTab];
+  const c = idx.current;
+  const vix = DATA.vix.current;
+
+  const bottomColor = getSignalColor(c.bottom_score);
+  const topColor = getSignalColor(c.top_score);
+
+  document.getElementById('signalArea').innerHTML = `
+    <div class="signal-card">
+      <div class="signal-type" style="color:${bottomColor}">
+        <span class="signal-indicator" style="background:${bottomColor}"></span>
+        바텀 시그널
+      </div>
+      <div class="signal-score" style="color:${bottomColor}">${Math.round(c.bottom_score)}</div>
+      <div class="signal-max">/100 · ${getSignalLabel(c.bottom_score)}</div>
+      <div class="score-breakdown">
+        <div class="score-row"><span>브레드스 기여</span><span class="score-row-value">${Math.min(70, Math.round(c.bottom_score * 0.8))}점</span></div>
+        <div class="score-row"><span>VIX 기여 (${vix})</span><span class="score-row-value">+${Math.max(0, Math.round(c.bottom_score * 0.2))}점</span></div>
+      </div>
+    </div>
+    <div class="signal-card">
+      <div class="signal-type" style="color:${topColor}">
+        <span class="signal-indicator" style="background:${topColor}"></span>
+        탑 시그널
+      </div>
+      <div class="signal-score" style="color:${topColor}">${Math.round(c.top_score)}</div>
+      <div class="signal-max">/100 · ${getSignalLabel(c.top_score)}</div>
+      <div class="score-breakdown">
+        <div class="score-row"><span>브레드스 기여</span><span class="score-row-value">${Math.min(75, Math.round(c.top_score * 0.85))}점</span></div>
+        <div class="score-row"><span>VIX 기여 (${vix})</span><span class="score-row-value">+${Math.max(0, Math.round(c.top_score * 0.15))}점</span></div>
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// HISTORICAL PROBABILITY
+// ============================================================
+function renderHistProb() {
+  const idx = DATA.indices[currentTab];
+  const hp = idx.historical_probability;
+  const c = idx.current;
+
+  if (!hp) {
+    document.getElementById('histProbArea').innerHTML = '<p style="color:var(--text-muted);font-size:13px">데이터 부족으로 분석 불가</p>';
+    return;
+  }
+
+  const periods = [
+    { key: '5d', label: '1주 후' },
+    { key: '20d', label: '1개월 후' },
+    { key: '60d', label: '3개월 후' },
+  ];
+
+  document.getElementById('histProbArea').innerHTML = `
+    <div class="prob-match-info">
+      현재 >20MA: ${c.pct_above_20.toFixed(1)}% · >50MA: ${c.pct_above_50.toFixed(1)}% 기준<br>
+      과거 5년간 유사 구간 (±${hp.tolerance}%) <strong style="color:var(--accent-cyan)">${hp.match_count}회</strong> 발생
+    </div>
+    <table class="prob-table">
+      <thead>
+        <tr>
+          <th>기간</th>
+          <th>평균 수익률</th>
+          <th>양수 확률</th>
+          <th>최대</th>
+          <th>최소</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${periods.map(p => {
+          const d = hp[p.key];
+          if (!d) return '';
+          return `
+            <tr>
+              <td style="font-weight:600;color:var(--text-primary)">${p.label}</td>
+              <td class="${d.avg >= 0 ? 'prob-positive' : 'prob-negative'}">${d.avg >= 0 ? '+' : ''}${d.avg}%</td>
+              <td>
+                <span class="prob-badge" style="background:${d.positive_pct >= 70 ? 'rgba(16,185,129,0.15);color:var(--accent-green)' : d.positive_pct >= 50 ? 'rgba(245,158,11,0.15);color:var(--accent-yellow)' : 'rgba(239,68,68,0.15);color:var(--accent-red)'}">
+                  ${d.positive_pct}%
+                </span>
+              </td>
+              <td class="prob-positive">+${d.max}%</td>
+              <td class="prob-negative">${d.min}%</td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+// ============================================================
+// COMPARE VIEW
+// ============================================================
+function renderCompare() {
+  const keys = ['SPY', 'QQQ', 'DIA'];
+
+  // Compare Grid
+  document.getElementById('compareGrid').innerHTML = keys.map(key => {
+    const idx = DATA.indices[key];
+    const c = idx.current;
+    const items = [
+      { l: '>20MA', v: c.pct_above_20 },
+      { l: '>50MA', v: c.pct_above_50 },
+      { l: '>100MA', v: c.pct_above_100 },
+      { l: '>200MA', v: c.pct_above_200 },
+      { l: '바텀', v: c.bottom_score, isSignal: true },
+      { l: '탑', v: c.top_score, isSignal: true },
+    ];
+
+    return `
+      <div class="compare-col">
+        <div class="compare-col-title">${key}</div>
+        ${items.map(item => {
+          let color;
+          if (item.isSignal) {
+            color = getSignalColor(item.v);
+          } else {
+            color = item.v > 70 ? 'var(--accent-green)' :
+                    item.v > 40 ? 'var(--accent-yellow)' :
+                    item.v > 20 ? 'var(--accent-orange)' : 'var(--accent-red)';
+          }
+          return `
+            <div class="compare-row">
+              <span class="compare-label">${item.l}</span>
+              <span class="compare-value" style="color:${color}">${item.isSignal ? Math.round(item.v) : item.v.toFixed(1) + '%'}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }).join('');
+
+  // Compare Chart
+  if (charts.compare) charts.compare.destroy();
+
+  const ctx = document.getElementById('compareChart').getContext('2d');
+  const colors = { SPY: '#3b82f6', QQQ: '#8b5cf6', DIA: '#f59e0b' };
+
+  charts.compare = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: DATA.indices.SPY.dates,
+      datasets: keys.map(key => ({
+        label: key,
+        data: DATA.indices[key].breadth.pct_above_20,
+        borderColor: colors[key],
+        borderWidth: 1.5,
+        pointRadius: 0,
+        tension: 0.2,
+      }))
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: {
+        legend: {
+          display: true,
+          labels: {
+            color: '#94a3b8',
+            font: { family: "'JetBrains Mono'", size: 11 },
+            usePointStyle: true, pointStyleWidth: 20,
+          }
+        },
+        tooltip: {
+          backgroundColor: '#1e293b',
+          titleColor: '#94a3b8',
+          bodyColor: '#f1f5f9',
+          titleFont: { family: "'JetBrains Mono'" },
+          bodyFont: { family: "'JetBrains Mono'" },
+          borderColor: '#334155', borderWidth: 1,
+          callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%` }
+        },
+        annotation: {
+          annotations: {
+            obLine: { type: 'line', yMin: 80, yMax: 80, borderColor: 'rgba(239,68,68,0.2)', borderWidth: 1, borderDash: [4,4] },
+            osLine: { type: 'line', yMin: 20, yMax: 20, borderColor: 'rgba(59,130,246,0.2)', borderWidth: 1, borderDash: [4,4] },
+            watermark: { type: 'label', xValue: DATA.indices.SPY.dates[Math.floor(DATA.indices.SPY.dates.length*0.5)], yValue: 50,
+              content: 'Herdvibe.com', font: { size: 16, family: "'JetBrains Mono'", weight: '600' }, color: 'rgba(148,163,184,0.08)' }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.03)' },
+          ticks: { color: '#64748b', font: { family: "'JetBrains Mono'", size: 10 }, maxTicksLimit: 8, maxRotation: 0 }
+        },
+        y: {
+          position: 'right', min: 0, max: 100,
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#64748b', font: { family: "'JetBrains Mono'", size: 10 }, callback: v => v + '%', stepSize: 20 }
+        }
+      }
+    }
+  });
+}
+
+// ============================================================
+// SHARE
+// ============================================================
+function getShareText() {
+  const idx = DATA.indices[currentTab] || DATA.indices.SPY;
+  const c = idx.current;
+  return `📊 ${idx.name} Market Breadth\n>20MA: ${c.pct_above_20.toFixed(1)}%\n>50MA: ${c.pct_above_50.toFixed(1)}%\n>200MA: ${c.pct_above_200.toFixed(1)}%\n바텀 시그널: ${Math.round(c.bottom_score)}/100\n\n#MarketBreadth #투자 via Herdvibe.com`;
+}
+
+function shareTwitter() {
+  const url = 'https://herdvibe.com/breadth';
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(getShareText())}&url=${encodeURIComponent(url)}`, '_blank');
+}
+
+function shareKakao() {
+  // 카카오톡 공유 (Kakao SDK 필요)
+  alert('카카오톡 공유는 Kakao SDK 연동 후 사용 가능합니다.');
+}
+
+function shareTelegram() {
+  const url = 'https://herdvibe.com/breadth';
+  window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(getShareText())}`, '_blank');
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+loadData();
+</script>
+</body>
+</html>
