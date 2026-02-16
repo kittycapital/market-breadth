@@ -118,16 +118,16 @@ def fetch_prices_batch(tickers, period="5y", batch_size=50):
             data = yf.download(
                 batch,
                 period=period,
-                auto_adjust=True,
+                auto_adjust=False,
                 threads=True,
                 progress=False
             )
 
             if isinstance(data.columns, pd.MultiIndex):
-                close_data = data["Close"]
+                close_data = data["Adj Close"]
             else:
                 # 단일 티커인 경우
-                close_data = pd.DataFrame(data["Close"], columns=[batch[0]])
+                close_data = pd.DataFrame(data["Adj Close"], columns=[batch[0]])
 
             for ticker in batch:
                 if ticker in close_data.columns:
@@ -177,7 +177,7 @@ def calculate_breadth(price_dict, ma_periods=MA_PERIODS):
 def fetch_index_prices(period="5y"):
     """인덱스 ETF(SPY, QQQ, DIA) 가격 데이터를 가져옵니다."""
     logger.info("인덱스 ETF 가격 다운로드 중...")
-    data = yf.download(INDEX_ETF_TICKERS, period=period, auto_adjust=True, progress=False)
+    data = yf.download(INDEX_ETF_TICKERS, period=period, auto_adjust=False, progress=False)
 
     result = {}
     if isinstance(data.columns, pd.MultiIndex):
@@ -197,7 +197,7 @@ def fetch_vix(period="5y"):
     """VIX 데이터를 가져옵니다."""
     logger.info("VIX 데이터 다운로드 중...")
     try:
-        vix = yf.download("^VIX", period=period, auto_adjust=True, progress=False)
+        vix = yf.download("^VIX", period=period, auto_adjust=False, progress=False)
         close = vix["Close"]
         # yfinance가 DataFrame을 반환할 수 있으므로 1D Series로 변환
         if isinstance(close, pd.DataFrame):
