@@ -198,7 +198,11 @@ def fetch_vix(period="5y"):
     logger.info("VIX 데이터 다운로드 중...")
     try:
         vix = yf.download("^VIX", period=period, auto_adjust=True, progress=False)
-        return vix["Close"].dropna()
+        close = vix["Close"]
+        # yfinance가 DataFrame을 반환할 수 있으므로 1D Series로 변환
+        if isinstance(close, pd.DataFrame):
+            close = close.iloc[:, 0]
+        return close.dropna()
     except Exception as e:
         logger.warning(f"VIX 다운로드 실패: {e}")
         return pd.Series()
@@ -396,10 +400,14 @@ def build_output(index_breadth, index_prices, vix_series, signals_dict):
 
     # VIX
     if vix_series is not None and len(vix_series) > 0:
+        if isinstance(vix_series, pd.DataFrame):
+            vix_s = vix_series.iloc[:, 0]
+        else:
+            vix_s = vix_series
         output["vix"] = {
-            "current": round(float(vix_series.iloc[-1]), 2),
-            "dates": [d.strftime("%Y-%m-%d") for d in vix_series.index],
-            "values": [round(float(v), 2) for v in vix_series.values],
+            "current": round(float(vix_s.iloc[-1]), 2),
+            "dates": [d.strftime("%Y-%m-%d") for d in vix_s.index],
+            "values": [round(float(v), 2) for v in vix_s.values],
         }
 
     return output
