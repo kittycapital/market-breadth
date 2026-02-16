@@ -231,7 +231,14 @@ def calculate_signals(breadth_df, vix_series=None):
 
     # VIX 가산점
     if vix_series is not None and len(vix_series) > 0:
-        vix_aligned = vix_series.reindex(breadth_df.index, method="ffill")
+        # vix_series를 1D Series로 확실히 변환
+        if isinstance(vix_series, pd.DataFrame):
+            vix_s = vix_series.iloc[:, 0]
+        else:
+            vix_s = vix_series.copy()
+        vix_s.index = pd.DatetimeIndex(vix_s.index).normalize()
+        breadth_idx = pd.DatetimeIndex(breadth_df.index).normalize()
+        vix_aligned = vix_s.reindex(breadth_idx, method="ffill").fillna(0).values
         bottom += ((vix_aligned >= 25) & (vix_aligned < 30)).astype(float) * 5
         bottom += ((vix_aligned >= 30) & (vix_aligned < 35)).astype(float) * 10
         bottom += ((vix_aligned >= 35) & (vix_aligned < 45)).astype(float) * 15
@@ -259,7 +266,13 @@ def calculate_signals(breadth_df, vix_series=None):
 
     # VIX 극단적 저점 (안일함)
     if vix_series is not None and len(vix_series) > 0:
-        vix_aligned = vix_series.reindex(breadth_df.index, method="ffill")
+        if isinstance(vix_series, pd.DataFrame):
+            vix_s = vix_series.iloc[:, 0]
+        else:
+            vix_s = vix_series.copy()
+        vix_s.index = pd.DatetimeIndex(vix_s.index).normalize()
+        breadth_idx = pd.DatetimeIndex(breadth_df.index).normalize()
+        vix_aligned = vix_s.reindex(breadth_idx, method="ffill").fillna(20).values
         top += ((vix_aligned <= 14) & (vix_aligned > 12)).astype(float) * 5
         top += (vix_aligned <= 12).astype(float) * 10
 
