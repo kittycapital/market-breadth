@@ -63,7 +63,7 @@
 <body>
 
 <!-- HEADER -->
-<header class="hv-header"><div class="hv-header-inner"><div class="hv-header-center"><h1>마켓 브레쓰</h1><span class="hv-header-category">% of Stocks Above Moving Average</span></div><div class="hv-header-right"><div class="hv-update-badge" id="updateBadge"><span class="hv-live-dot"></span><span>--</span></div></div></div></header>
+<header class="hv-header"><div class="hv-header-inner"><div class="hv-header-center"><h1>마켓 브레쓰</h1><span class="hv-header-category">이동평균선 상회 종목 비율</span></div><div class="hv-header-right"><div class="hv-update-badge" id="updateBadge"><span class="hv-live-dot"></span><span>--</span></div></div></div></header>
 
 <div class="hv-page">
 
@@ -97,12 +97,12 @@
     <!-- BREADTH CHART -->
     <div class="hv-card">
       <div class="hv-card-head">
-        <h2>% of Stocks Above Moving Average</h2>
+        <h2>이동평균선 상회 종목 비율</h2>
         <div class="ma-toggles" id="maToggles">
           <button class="ma-toggle active" data-ma="20" onclick="toggleMA('20')"><span class="dot" style="background:var(--ma20)"></span>20 MA</button>
-          <button class="ma-toggle active" data-ma="50" onclick="toggleMA('50')"><span class="dot" style="background:var(--ma50)"></span>50 MA</button>
-          <button class="ma-toggle active" data-ma="100" onclick="toggleMA('100')"><span class="dot" style="background:var(--ma100)"></span>100 MA</button>
-          <button class="ma-toggle active" data-ma="200" onclick="toggleMA('200')"><span class="dot" style="background:var(--ma200)"></span>200 MA</button>
+          <button class="ma-toggle" data-ma="50" onclick="toggleMA('50')"><span class="dot" style="background:var(--ma50)"></span>50 MA</button>
+          <button class="ma-toggle" data-ma="100" onclick="toggleMA('100')"><span class="dot" style="background:var(--ma100)"></span>100 MA</button>
+          <button class="ma-toggle" data-ma="200" onclick="toggleMA('200')"><span class="dot" style="background:var(--ma200)"></span>200 MA</button>
         </div>
       </div>
       <div class="chart-wrap tall"><canvas id="breadthChart"></canvas></div>
@@ -189,7 +189,7 @@ var watermarkPlugin={id:'herdvibeWatermark',beforeDraw:function(chart){var ctx=c
 
 /* ===== STATE ===== */
 var DATA=null,currentTab='SPY',currentRange=0,charts={};
-var maVisible={20:true,50:true,100:true,200:true};
+var maVisible={20:true,50:false,100:false,200:false};
 Chart.defaults.color='#555';Chart.defaults.borderColor='rgba(255,255,255,0.06)';Chart.defaults.font.family="'Noto Sans KR',sans-serif";
 
 /* ===== DATA LOADING ===== */
