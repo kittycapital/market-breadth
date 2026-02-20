@@ -46,6 +46,8 @@
 /* COMPARE */
 .compare-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.compare-col{background:var(--hv-bg-surface);border:1px solid var(--hv-border);border-radius:var(--hv-radius-md);padding:14px}.compare-col-title{font-family:var(--hv-font-display);font-weight:700;font-size:.9rem;color:var(--hv-text-primary);margin-bottom:10px;text-align:center}.compare-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:.75rem}.compare-row:last-child{border-bottom:none}.compare-label{color:var(--hv-text-tertiary);font-family:var(--hv-font-mono)}.compare-value{font-family:var(--hv-font-mono);font-weight:600}
 
+.snapshot-signal-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--hv-space-lg);margin-bottom:var(--hv-space-lg)}
+
 /* SHARE */
 .share-bar{display:flex;align-items:center;justify-content:space-between;padding:12px var(--hv-space-lg);border-top:1px solid var(--hv-border);background:var(--hv-bg-surface)}.share-bar-preview{font-size:.75rem;color:var(--hv-text-tertiary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:50%;line-height:1.4;font-family:var(--hv-font-mono)}.share-bar-preview span{color:var(--hv-text-secondary);font-weight:500}.share-bar-buttons{display:flex;align-items:center;gap:6px;flex-shrink:0}.share-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:6px;font-size:.75rem;font-weight:600;font-family:var(--hv-font-body);cursor:pointer;transition:all var(--hv-transition-fast);border:1px solid var(--hv-border-strong);background:var(--hv-bg-card);color:#999;white-space:nowrap}.share-btn:hover{transform:translateY(-1px);box-shadow:var(--hv-shadow-sm);color:var(--hv-text-primary)}.share-btn svg{flex-shrink:0}.share-btn--x:hover{border-color:#fff;color:#fff;background:#111}.share-btn--kakao:hover{border-color:#FEE500;color:#191919;background:#FEE500}.share-btn--tg:hover{border-color:#26A5E4;color:#fff;background:rgba(38,165,228,.15)}.share-btn--ig:hover{border-color:#E4405F;color:#fff;background:rgba(228,64,95,.15)}.share-btn--copy:hover{border-color:var(--hv-primary);color:var(--hv-primary-light);background:var(--hv-primary-glow)}
 .inline-share{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 0;border-top:1px solid var(--hv-border)}.inline-share .lbl{font-size:10px;color:var(--hv-text-muted);margin-right:4px}.inline-share .share-btn{padding:6px 10px}
@@ -56,7 +58,7 @@
 .hidden{display:none!important}
 
 /* RESPONSIVE */
-@media(max-width:768px){:root{--hv-header-height:52px}.hv-page{padding:var(--hv-space-md)}.hv-header{padding:0 var(--hv-space-md)}.hv-update-badge{display:none}.hv-header-center h1{font-size:1.1rem}.chart-wrap{height:260px}.chart-wrap.tall{height:300px}.signals-grid{grid-template-columns:1fr}.compare-grid{grid-template-columns:1fr}.share-bar{flex-direction:column;gap:10px;align-items:stretch}.share-bar-preview{max-width:100%}.share-bar-buttons{justify-content:center;flex-wrap:wrap}.share-btn span.label-text{display:none}.share-btn{padding:8px 10px}.inline-share .lbl{display:none}}
+@media(max-width:768px){:root{--hv-header-height:52px}.hv-page{padding:var(--hv-space-md)}.hv-header{padding:0 var(--hv-space-md)}.hv-update-badge{display:none}.hv-header-center h1{font-size:1.1rem}.chart-wrap{height:260px}.chart-wrap.tall{height:300px}.signals-grid{grid-template-columns:1fr}.snapshot-signal-grid{grid-template-columns:1fr}.compare-grid{grid-template-columns:1fr}.share-bar{flex-direction:column;gap:10px;align-items:stretch}.share-bar-preview{max-width:100%}.share-bar-buttons{justify-content:center;flex-wrap:wrap}.share-btn span.label-text{display:none}.share-btn{padding:8px 10px}.inline-share .lbl{display:none}}
 @media(max-width:520px){.hv-page{padding:12px 10px 24px}.asset-tabs{padding:3px;gap:2px}.asset-tab{padding:9px 4px;font-size:.82rem}.tab-sub{display:none}.chart-wrap{height:240px}.chart-wrap.tall{height:270px}.hv-card-head{padding:12px 14px}.ma-toggles{gap:4px}.ma-toggle{padding:4px 8px;font-size:.65rem}.signal-score{font-size:2.2rem}}
 </style>
 </head>
@@ -110,7 +112,7 @@
     </div>
 
     <!-- SNAPSHOT + SIGNALS -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--hv-space-lg);margin-bottom:var(--hv-space-lg)">
+    <div class="snapshot-signal-grid">
       <div class="hv-card" style="margin-bottom:0">
         <div class="hv-card-head"><h2>현재 브레드스 스냅샷</h2></div>
         <div class="hv-card-body" id="snapshotArea"></div>
