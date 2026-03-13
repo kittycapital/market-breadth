@@ -3,7 +3,7 @@ name: Update Market Breadth Data
 on:
   schedule:
     # 매일 미국장 마감 후 (UTC 21:30 = EST 16:30 = KST 06:30)
-    - cron: '30 21 * * 1-5'
+    - cron: '0 22 * * 1-5'
   workflow_dispatch: # 수동 실행 가능
 
 jobs:
